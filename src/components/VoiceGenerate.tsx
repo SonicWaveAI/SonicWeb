@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useState } from "react"
 import {
   Select,
   SelectContent,
@@ -10,21 +10,17 @@ import { Button } from "@/components/ui/button.tsx"
 import { Textarea } from "@/components/ui/textarea.tsx"
 import { BASE_URL } from "@/lib/constant.ts"
 import { toast } from "sonner"
-import { RotateCw } from "lucide-react"
+import { Loader, MousePointerClick } from "lucide-react"
+import { useStore } from "@nanostores/react"
+import { $models } from "@/lib/store/store.ts"
 
 function VoiceGenerate() {
-  const [modelList, setModelList] = useState<string[]>([])
+  const models = useStore($models)
+
   const [input, setInput] = useState("")
   const [model, setModel] = useState("")
   const [loading, setLoading] = useState(false)
   const [audioURL, setAudioURL] = useState("")
-
-  useEffect(() => {
-    fetch(BASE_URL + "/models")
-      .then((res) => res.json())
-      .then((res) => setModelList(res.models))
-      .catch((err) => toast.error(err.message ?? err))
-  }, [])
 
   function onGenerate() {
     if (loading) {
@@ -62,7 +58,7 @@ function VoiceGenerate() {
             <SelectValue placeholder=" 选择音色" />
           </SelectTrigger>
           <SelectContent>
-            {modelList.map((item, i) => (
+            {models.map((item, i) => (
               <SelectItem key={i} value={item}>
                 {item}
               </SelectItem>
@@ -70,28 +66,29 @@ function VoiceGenerate() {
           </SelectContent>
         </Select>
         <Button disabled={loading} onClick={onGenerate}>
+          <MousePointerClick />
           点击生成
         </Button>
-        {loading && <RotateCw className="animate-spin self-center" />}
       </div>
       <div className="flex-1">
-        <div className="border-b border-dashed p-4">
+        <div className="space-y-4 p-4">
           <Textarea
             value={input}
             disabled={loading}
             onChange={(e) => setInput(e.currentTarget.value)}
-            className="h-30 resize-none"
+            className="h-30 resize-none text-sm"
             placeholder="请输入要生成的文本"
           />
+          {loading && <Loader className="mx-auto animate-spin" />}
         </div>
-        <div className="p-4">
-          {audioURL && (
+        {audioURL && (
+          <div className="border-t border-dashed p-4">
             <audio controls className="w-full">
               <source src={audioURL} type="audio/wav" />
               您的浏览器不支持 audio 元素。
             </audio>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   )
